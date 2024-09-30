@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+// Hospital Model
+model Hospital {
+  HospitalID    Int         @id @default(autoincrement())
+
+  Departments   Department[]
+  Staff         Staff[]     
+  Rooms         Room[]     
+}
+
+// Department Model
+model Department {
+  DepartmentID  Int         @id @default(autoincrement())
+  HospitalID    Int
+  Doctors       Doctor[]
+  Staff         Staff[]
+  Rooms         Room[]
+  Appointments  Appointment[]
+
+  Hospital      Hospital    @relation(fields: [HospitalID], references: [HospitalID], onDelete: NoAction, onUpdate: NoAction)
+}
+
+// Doctor Model
+model Doctor {
+  DoctorID      Int         @id @default(autoincrement())
+ 
+  DepartmentID  Int
+
+  Department    Department  @relation(fields: [DepartmentID], references: [DepartmentID], onDelete: NoAction, onUpdate: NoAction)
+  Appointments  Appointment[]
+  Prescriptions Prescription[]
+}
+
+// Staff Model
+model Staff {
+  StaffID       Int         @id @default(autoincrement())
+  
+  DepartmentID  Int?
+  HospitalID    Int
+
+  Department    Department? @relation(fields: [DepartmentID], references: [DepartmentID], onDelete: SetNull)
+  Hospital      Hospital    @relation(fields: [HospitalID], references: [HospitalID], onDelete: NoAction, onUpdate: NoAction)
+}
+
+// Patient Model
+model Patient {
+  PatientID     Int         @id @default(autoincrement())
+
+
+  Appointments  Appointment[]
+  Prescriptions Prescription[]
+  Invoices      Invoice[]
+}
+
+// Room Model
+model Room {
+  RoomID        Int         @id @default(autoincrement())
+   
+  DepartmentID  Int
+  HospitalID    Int
+
+  Department    Department  @relation(fields: [DepartmentID], references: [DepartmentID], onDelete: NoAction, onUpdate: NoAction)
+  Hospital      Hospital    @relation(fields: [HospitalID], references: [HospitalID], onDelete: NoAction, onUpdate: NoAction)
+}
+
+// Appointment Model
+model Appointment {
+  AppointmentID Int         @id @default(autoincrement())
+  PatientID     Int
+  DoctorID      Int
+  DepartmentID  Int
+
+
+  Patient       Patient     @relation(fields: [PatientID], references: [PatientID], onDelete: Cascade)
+  Doctor        Doctor      @relation(fields: [DoctorID], references: [DoctorID], onDelete: NoAction, onUpdate: NoAction)
+  Department    Department  @relation(fields: [DepartmentID], references: [DepartmentID], onDelete: NoAction, onUpdate: NoAction)
+}
+
+// Prescription Model
+model Prescription {
+  PrescriptionID Int        @id @default(autoincrement())
+  PatientID      Int
+  DoctorID       Int
+
+  Patient        Patient    @relation(fields: [PatientID], references: [PatientID], onDelete: Cascade)
+  Doctor         Doctor     @relation(fields: [DoctorID], references: [DoctorID], onDelete: NoAction, onUpdate: NoAction)
+  PharmacyItems  PharmacyItem[]
+}
+
+// Pharmacy Model
+model Pharmacy {
+  PharmacyID    Int         @id @default(autoincrement())
+
+  PharmacyItems PharmacyItem[]
+}
+
+model PharmacyItem {
+  PharmacyItemID Int        @id @default(autoincrement())
+  PharmacyID     Int
+  PrescriptionID Int
+
+  Pharmacy       Pharmacy   @relation(fields: [PharmacyID], references: [PharmacyID], onDelete: Cascade)
+  Prescription   Prescription @relation(fields: [PrescriptionID], references: [PrescriptionID], onDelete: Cascade)
+}
+
+// Invoice Model
+model Invoice {
+  InvoiceID     Int         @id @default(autoincrement())
+  PatientID     Int
+   
+
+  Patient       Patient     @relation(fields: [PatientID], references: [PatientID], onDelete: Cascade)
+}
